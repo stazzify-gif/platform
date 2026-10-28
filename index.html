@@ -1,0 +1,230 @@
+html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Калькулятор Пифагора</title>
+    <!-- Иконка и настройки для iOS, чтобы приложение работало как нативное -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Пифагор">
+    
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #1c1c1e;
+            --text-color: #ffffff;
+            --text-muted: #8e8e93;
+            --accent-color: #0a84ff;
+            --success-color: #30d158;
+            --border-color: #2c2c2e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: calc(40px + env(safe-area-inset-top)) 16px 40px 16px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h2 { margin-bottom: 24px; font-weight: 700; font-size: 28px; }
+        h3 { margin: 24px 0 12px 0; color: var(--text-muted); font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group:last-child { margin-bottom: 0; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            background-color: #2c2c2e;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 17px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        input:focus { box-shadow: 0 0 0 2px var(--accent-color); }
+
+        button {
+            width: 100%;
+            background-color: var(--accent-color);
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:active { opacity: 0.7; }
+        
+        button.excel-btn {
+            background-color: var(--success-color);
+            margin-top: 10px;
+        }
+
+        .result-box {
+            text-align: center;
+            padding: 20px;
+            background: #2c2c2e;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+        .result-val { font-size: 32px; font-weight: 700; color: var(--success-color); margin-top: 5px; }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 16px;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-details { color: var(--text-muted); font-size: 14px; }
+        .history-res { font-weight: 600; color: var(--success-color); }
+    </style>
+</head>
+<body>
+
+    <h2>Теорема Пифагора</h2>
+
+    <div class="card">
+        <div class="input-group">
+            <label for="katetA">Известный катет (a)</label>
+            <input type="number" id="katetA" placeholder="Введите значение" inputmode="decimal">
+        </div>
+        <div class="input-group">
+            <label for="gipotenuzaC">Гипотенуза (c)</label>
+            <input type="number" id="gipotenuzaC" placeholder="Введите значение" inputmode="decimal">
+        </div>
+        <button onclick="calculate()">Вычислить второй катет</button>
+
+        <div class="result-box" id="resultBox">
+            <label>Результат (катет b):</label>
+            <div class="result-val" id="resultValue">0</div>
+        </div>
+    </div>
+
+    <h3>История расчетов</h3>
+    <div class="card">
+        <div class="history-list" id="historyList">
+            <!-- Сюда добавляются результаты -->
+        </div>
+        <button class="excel-btn" onclick="exportToExcel()">Выгрузить в Excel (.CSV)</button>
+        <button style="background: #ff3b30; margin-top: 10px;" onclick="clearHistory()">Очистить историю</button>
+    </div>
+
+    <script>
+        let history = JSON.parse(localStorage.getItem('pythagor_history')) || [];
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = history.length === 0 ? '<div style="color: #8e8e93; text-align: center; padding: 10px;">История пуста</div>' : '';
+            
+            history.slice().reverse().forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-details">a = ${item.a}, c = ${item.c}</div>
+                    <div class="history-res">b = ${item.b}</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function calculate() {
+            const a = parseFloat(document.getElementById('katetA').value);
+            const c = parseFloat(document.getElementById('gipotenuzaC').value);
+
+            if (isNaN(a) || isNaN(c) || a <= 0 || c <= 0) {
+                alert("Пожалуйста, введите корректные числа больше нуля.");
+                return;
+            }
+            if (a >= c) {
+                alert("Катет не может быть больше или равен гипотенузе!");
+                return;
+            }
+
+            // Формула Пифагора: b = sqrt(c^2 - a^2)
+            const b = Math.sqrt(Math.pow(c, 2) - Math.pow(a, 2)).toFixed(3);
+
+            document.getElementById('resultValue').innerText = b;
+            document.getElementById('resultBox').style.display = 'block';
+
+            // Сохраняем в историю
+            history.push({ a, c, b: parseFloat(b) });
+            localStorage.setItem('pythagor_history', JSON.stringify(history));
+            renderHistory();
+
+            // Очищаем поля ввода для следующего раза
+            document.getElementById('katetA').value = '';
+            document.getElementById('gipotenuzaC').value = '';
+        }
+
+        function clearHistory() {
+            if(confirm("Удалить все записи?")) {
+                history = [];
+                localStorage.removeItem('pythagor_history');
+                renderHistory();
+                document.getElementById('resultBox').style.display = 'none';
+            }
+        }
+
+        function exportToExcel() {
+            if (history.length === 0) {
+                alert("История пуста, нечего выгружать.");
+                return;
+            }
+            
+            // UTF-8 BOM для корректного открытия в Excel на русском языке
+            let csvContent = "\uFEFF"; 
+            csvContent += "Катет A;Гипотенуза C;Второй катет B (Результат)\n";
+
+            history.forEach(item => {
+                csvContent += `${item.a};${item.c};${item.b}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Расчеты_Пифагора.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Запуск при загрузке
+        renderHistory();
+    </script>
+</body>
+</html>
