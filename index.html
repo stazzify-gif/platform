@@ -4,11 +4,11 @@ html
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Калькулятор Пифагора</title>
+    <title>Промер Габаритов Платформы</title>
     <!-- Иконка и настройки для iOS, чтобы приложение работало как нативное -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Пифагор">
+    <meta name="apple-mobile-web-app-title" content="Платформа">
     
     <style>
         :root {
@@ -114,18 +114,18 @@ html
 </head>
 <body>
 
-    <h2>Теорема Пифагора</h2>
+    <h2>Промер Пассажирской Платформы</h2>
 
     <div class="card">
         <div class="input-group">
-            <label for="katetA">Известный катет (a)</label>
+            <label for="katetA">Расстояние от оси пути (a)</label>
             <input type="number" id="katetA" placeholder="Введите значение" inputmode="decimal">
         </div>
         <div class="input-group">
             <label for="gipotenuzaC">Гипотенуза (c)</label>
             <input type="number" id="gipotenuzaC" placeholder="Введите значение" inputmode="decimal">
         </div>
-        <button onclick="calculate()">Вычислить второй катет</button>
+        <button onclick="calculate()">Вычислить высоту над УГР</button>
 
         <div class="result-box" id="resultBox">
             <label>Результат (катет b):</label>
@@ -206,7 +206,7 @@ html
             
             // UTF-8 BOM для корректного открытия в Excel на русском языке
             let csvContent = "\uFEFF"; 
-            csvContent += "Катет A;Гипотенуза C;Второй катет B (Результат)\n";
+            csvContent += "Расстояние от оси, A;Гипотенуза, C;Высота над УГР B (Результат)\n";
 
             history.forEach(item => {
                 csvContent += `${item.a};${item.c};${item.b}\n`;
